@@ -1,0 +1,7 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+json_temp_file/*
+verilog/*
+.ipynb_checkpoints/*
+save/*
