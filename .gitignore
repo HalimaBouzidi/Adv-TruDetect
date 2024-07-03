@@ -3,5 +3,6 @@ __pycache__/
 *.py[cod]
 json_temp_file/*
 verilog/*
-.ipynb_checkpoints/*
+Verilog-Perl/*
 save/*
+.ipynb_checkpoints/*
