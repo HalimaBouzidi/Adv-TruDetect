@@ -284,10 +284,6 @@ class Classifier_Netlist:
     def train(self):  # train_data, valid_data, num_epochs, optimizer, loss_function
         logger = setup_logger(self.log_task_name, self.folder_path, 0, filename=self.log_task_name + '_log' + '.txt')
 
-        # criterion = nn.CrossEntropyLoss(weight=self.weights)
-        # criterion = nn.CrossEntropyLoss()  # # when use softmax
-
-        # criterion = nn.NLLLoss(weight=self.weights)
         criterion = nn.NLLLoss()  # when use log_softmax
 
         optimizer = optim.Adam(self.model.parameters(), lr=self.initial_lr)
@@ -320,17 +316,18 @@ class Classifier_Netlist:
                 loss.backward()
                 optimizer.step()
 
-                if i > 0 and i % 3000 == 0:
-                    logger.info('Train [{}] epoch, Loss: {:.6f}, Acc: {:.6f}'.format(epoch + 1,
-                                                                               running_loss / i,
-                                                                               running_acc / (self.batch_size * i)))
-                    logger.info(tra_confusion_matrix)
-                    # NPV,precision(PPV)
-                    precision = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(1)  # ----> row add
-                    logger.info(precision)
-                    # TNR,recall(TPR)
-                    recall = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(0)  # column add
-                    logger.info(recall)
+
+                # if i > 0 and i % 3000 == 0:
+                #     logger.info('Train [{}] epoch, Loss: {:.6f}, Acc: {:.6f}'.format(epoch + 1,
+                #                                                                running_loss / i,
+                #                                                                running_acc / (self.batch_size * i)))
+                #     logger.info(tra_confusion_matrix)
+                #     # NPV,precision(PPV)
+                #     precision = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(1)  # ----> row add
+                #     logger.info(precision)
+                #     # TNR,recall(TPR)
+                #     recall = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(0)  # column add
+                #     logger.info(recall)
 
 
             logger.info('Finish {} epoch, Loss: {:.6f}, Acc: {:.6f}'.format(epoch + 1,
@@ -338,35 +335,115 @@ class Classifier_Netlist:
                                                                       running_acc / (self.batch_size * len(
                                                                           self.tra_dataset))))
 
-            logger.info(tra_confusion_matrix)
-            # To get the per-class accuracy: precision
-            precision = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(1)
-            # print(precision)
-            logger.info(precision)
-            recall = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(0)
-            # print(recall)
-            logger.info(recall)
+            self.evaluate_no_save()
 
-            # print('====TEST====')# ===============================================================
-            logger.info('====TEST====')  # ===============================================================
-            # =====create output data file
-            temp_name = self.output_result_file.split('.')
-            result_file = temp_name[0] + '_test_epoch[{:d}].'.format(epoch) + temp_name[1]
-            result_path_file = os.path.join(self.folder_path, result_file)
-            # print("Creating {}...".format(result_file))
-            logger.info("Creating {}...".format(result_file))
-            try:
-                os.remove(result_path_file)
-            except OSError:
-                pass
-            df = pd.DataFrame(columns=['out_score', 'pred', 'label', 'compname'])
-            df.to_csv(result_path_file, mode='w', header=True, index=False)
-            output_data = dict()
-            self.model.eval()
-            eval_loss = 0.0
-            eval_acc = 0.0
-            eval_confusion_matrix = torch.zeros(2, 2)  # nb_classes, nb_classes
-            for i, sample_batched in enumerate(tqdm(self.val_dataloader)):
+            # logger.info(tra_confusion_matrix)
+            # # To get the per-class accuracy: precision
+            # precision = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(1)
+            # # print(precision)
+            # logger.info(precision)
+            # recall = tra_confusion_matrix.diag() / tra_confusion_matrix.sum(0)
+            # # print(recall)
+            # logger.info(recall)
+
+            # # print('====TEST====')# ===============================================================
+            # logger.info('====TEST====')  # ===============================================================
+            # # =====create output data file
+            # temp_name = self.output_result_file.split('.')
+            # result_file = temp_name[0] + '_test_epoch[{:d}].'.format(epoch) + temp_name[1]
+            # result_path_file = os.path.join(self.folder_path, result_file)
+            # # print("Creating {}...".format(result_file))
+            # logger.info("Creating {}...".format(result_file))
+            # try:
+            #     os.remove(result_path_file)
+            # except OSError:
+            #     pass
+            # df = pd.DataFrame(columns=['out_score', 'pred', 'label', 'compname'])
+            # df.to_csv(result_path_file, mode='w', header=True, index=False)
+            # output_data = dict()
+            # self.model.eval()
+            # eval_loss = 0.0
+            # eval_acc = 0.0
+            # eval_confusion_matrix = torch.zeros(2, 2)  # nb_classes, nb_classes
+            # for i, sample_batched in enumerate(tqdm(self.val_dataloader)):
+            #     batched_data = sample_batched[0].to(self.device)
+            #     batched_label = sample_batched[1].to(self.device)
+            #     batched_comp = sample_batched[2]
+            #     out, out_score = self.model(batched_data)
+            #     loss = criterion(out, batched_label)
+            #     eval_loss += loss.item() * batched_label.size(0)
+            #     _, pred = torch.max(out, 1)
+            #     for p, t in zip(pred.view(-1), batched_label.view(-1)):
+            #         eval_confusion_matrix[p.long(), t.long()] += 1
+            #     num_correct = (pred == batched_label).sum()
+            #     eval_acc += num_correct.item()
+
+            #     # =====save output data
+            #     if 'out_score' not in output_data:
+            #         output_data['out_score'] = out_score.detach().cpu()
+            #     else:
+            #         output_data['out_score'] = torch.cat((output_data['out_score'], out_score.detach().cpu()), dim=0)
+
+            #     if 'pred' not in output_data:
+            #         output_data['pred'] = pred.detach().cpu()
+            #     else:
+            #         output_data['pred'] = torch.cat((output_data['pred'], pred.detach().cpu()), dim=0)
+
+            #     if 'label' not in output_data:
+            #         output_data['label'] = batched_label.detach().cpu()
+            #     else:
+            #         output_data['label'] = torch.cat((output_data['label'], batched_label.detach().cpu()), dim=0)
+
+            #     if 'compname' not in output_data:
+            #         output_data['compname'] = list(batched_comp)
+            #     else:
+            #         output_data['compname'] += list(batched_comp)
+
+            #     if i > 0 and i % 3000 == 0:
+            #         logger.info("ANA_DATA saving...")
+            #         output_data['out_score'] = list(output_data['out_score'].numpy())
+            #         output_data['pred'] = output_data['pred'].numpy()
+            #         output_data['label'] = output_data['label'].numpy()
+            #         df = pd.DataFrame(output_data)
+            #         output_data = dict()
+            #         df.to_csv(result_path_file, mode='a', header=False, index=False)
+
+            # output_data['out_score'] = list(output_data['out_score'].numpy())
+            # output_data['pred'] = output_data['pred'].numpy()
+            # output_data['label'] = output_data['label'].numpy()
+            # df = pd.DataFrame(output_data)
+            # output_data = dict()
+            # df.to_csv(result_path_file, mode='a', header=False, index=False)
+
+            # logger.info('Test Loss: {:.6f}, Acc: {:.6f}'.format(eval_loss / (len(self.val_dataset)),
+            #                                               eval_acc * 1.0 / (self.batch_size * len(self.val_dataset))))
+            # logger.info(eval_confusion_matrix)
+
+            # # NPV, precision(PPV)
+            # precision = eval_confusion_matrix.diag() / eval_confusion_matrix.sum(1)
+            # logger.info(precision)
+            # # TNR, recall(TPR)
+            # recall = eval_confusion_matrix.diag() / eval_confusion_matrix.sum(0)
+            # logger.info(recall)
+
+            # SAVE THE MODEL
+            temp_name = self.output_model_file.split('.')
+            result_file = temp_name[0] + '_epoch[{:d}].'.format(epoch) + temp_name[1]
+            torch.save(self.model.state_dict(), os.path.join(self.folder_path, result_file))
+
+    def evaluate_no_save(self):
+        logger = setup_logger(self.log_task_name, self.folder_path, 0, filename=self.log_task_name + '_log' + '.txt')
+        criterion = nn.NLLLoss()  # when use log_softmax
+
+        # print('====TEST====')# ===============================================================
+        logger.info('====TEST====')  # ===============================================================
+        # =====create output data file
+
+        self.model.eval()
+        eval_loss = 0.0
+        eval_acc = 0.0
+        eval_confusion_matrix = torch.zeros(2, 2)  # nb_classes, nb_classes
+        for i, sample_batched in enumerate(tqdm(self.val_dataloader)):
                 batched_data = sample_batched[0].to(self.device)
                 batched_label = sample_batched[1].to(self.device)
                 batched_comp = sample_batched[2]
@@ -379,55 +456,13 @@ class Classifier_Netlist:
                 num_correct = (pred == batched_label).sum()
                 eval_acc += num_correct.item()
 
-                # =====save output data
-                if 'out_score' not in output_data:
-                    output_data['out_score'] = out_score.detach().cpu()
-                else:
-                    output_data['out_score'] = torch.cat((output_data['out_score'], out_score.detach().cpu()), dim=0)
+        logger.info('Test Loss: {:.6f}, Acc: {:.6f}'.format(eval_loss / (len(self.val_dataset)),
+                                                        eval_acc * 1.0 / (self.batch_size * len(self.val_dataset))))
+        logger.info(eval_confusion_matrix)
 
-                if 'pred' not in output_data:
-                    output_data['pred'] = pred.detach().cpu()
-                else:
-                    output_data['pred'] = torch.cat((output_data['pred'], pred.detach().cpu()), dim=0)
-
-                if 'label' not in output_data:
-                    output_data['label'] = batched_label.detach().cpu()
-                else:
-                    output_data['label'] = torch.cat((output_data['label'], batched_label.detach().cpu()), dim=0)
-
-                if 'compname' not in output_data:
-                    output_data['compname'] = list(batched_comp)
-                else:
-                    output_data['compname'] += list(batched_comp)
-
-                if i > 0 and i % 3000 == 0:
-                    logger.info("ANA_DATA saving...")
-                    output_data['out_score'] = list(output_data['out_score'].numpy())
-                    output_data['pred'] = output_data['pred'].numpy()
-                    output_data['label'] = output_data['label'].numpy()
-                    df = pd.DataFrame(output_data)
-                    output_data = dict()
-                    df.to_csv(result_path_file, mode='a', header=False, index=False)
-
-            output_data['out_score'] = list(output_data['out_score'].numpy())
-            output_data['pred'] = output_data['pred'].numpy()
-            output_data['label'] = output_data['label'].numpy()
-            df = pd.DataFrame(output_data)
-            output_data = dict()
-            df.to_csv(result_path_file, mode='a', header=False, index=False)
-
-            logger.info('Test Loss: {:.6f}, Acc: {:.6f}'.format(eval_loss / (len(self.val_dataset)),
-                                                          eval_acc * 1.0 / (self.batch_size * len(self.val_dataset))))
-            logger.info(eval_confusion_matrix)
-
-            # NPV, precision(PPV)
-            precision = eval_confusion_matrix.diag() / eval_confusion_matrix.sum(1)
-            logger.info(precision)
-            # TNR, recall(TPR)
-            recall = eval_confusion_matrix.diag() / eval_confusion_matrix.sum(0)
-            logger.info(recall)
-
-            # SAVE THE MODEL
-            temp_name = self.output_model_file.split('.')
-            result_file = temp_name[0] + '_epoch[{:d}].'.format(epoch) + temp_name[1]
-            torch.save(self.model.state_dict(), os.path.join(self.folder_path, result_file))
+        # NPV, precision(PPV)
+        precision = eval_confusion_matrix.diag() / eval_confusion_matrix.sum(1)
+        logger.info(precision)
+        # TNR, recall(TPR)
+        recall = eval_confusion_matrix.diag() / eval_confusion_matrix.sum(0)
+        logger.info(recall)

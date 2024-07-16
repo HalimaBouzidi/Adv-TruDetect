@@ -262,11 +262,13 @@ class Classifier_Netlist:
         self.tra_data = DataReader(base_path=base_path, source_config=source_config, config_type='TRAIN_PARA',
                                    num_workers=num_tra_workers)
         self.tra_data_chunk_list = list()
+
         if self.num_tra_workers > 1:
             for idx in range(self.num_tra_workers):
                 self.tra_data_chunk_list.append(DataReader_Chunk(self.tra_data, worker_id=idx))
         else:
             self.tra_data_chunk_list.append(DataReader_Chunk(self.tra_data))
+        
         self.tra_dataset = NetlistDataset(self.tra_data_chunk_list, batch_size)
         self.tra_dataloader = DataLoader(self.tra_dataset, batch_size=batch_size, shuffle=False,
                                          num_workers=num_tra_workers)
