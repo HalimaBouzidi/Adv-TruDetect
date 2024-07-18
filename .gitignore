@@ -6,3 +6,4 @@ verilog/*
 Verilog-Perl/*
 save/*
 .ipynb_checkpoints/*
+weights/*
