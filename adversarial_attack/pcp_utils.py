@@ -105,7 +105,7 @@ def mutate_pcp_list(HTnn_net, orig_list, n_changes=1, p=0.5):
             pcp_word = orig_pcp_copy[i][random.randint(0, len(orig_pcp_copy[i])-1)]
             new_pcp_word = mutate_pcp_word(pcp_word, dict)
             
-            for j in range(len(orig_pcp_copy)): # Apply changes to all pcps that share the word
+            for j in range(len(orig_pcp_copy)): # Apply changes to all pcps that share a specific PCP word
                 for k in range(len(orig_pcp_copy[j])):
                     if orig_pcp_copy[j][k].split('_')[1] == pcp_word.split('_')[1]:
                         orig_pcp_copy[j][k] = orig_pcp_copy[j][k].split('_')[0]+'_'+new_pcp_word.split('_')[1]+'_'+orig_pcp_copy[j][k].split('_')[2]

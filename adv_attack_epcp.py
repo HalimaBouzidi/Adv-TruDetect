@@ -16,7 +16,7 @@ def set_random_seeds(random_seed=0):
     np.random.seed(random_seed)
     random.seed(random_seed)
 
-parser = argparse.ArgumentParser(description='Test AttentiveNas Models')
+parser = argparse.ArgumentParser(description='Adversarial Attacks on E-PCP')
 parser.add_argument('--seed', default=1, type=int, help='Value of the random seed.')
 parser.add_argument('--model', default='cnn', type=str, choices=['cnn', 'lstm'])
 parser.add_argument('--attack', default='fgsm', type=str, choices=['fgsm', 'pgd', 'bim'])

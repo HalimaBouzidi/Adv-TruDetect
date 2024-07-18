@@ -44,7 +44,7 @@ def genetic_search(HTnn_net, orig_pcp_list, population_size, generations):
     
     return best_solutions
 
-parser = argparse.ArgumentParser(description='Test AttentiveNas Models')
+parser = argparse.ArgumentParser(description='Adversarial Attacks on PCP Traces')
 parser.add_argument('--seed', default=1, type=int, help='Value of the random seed.')
 parser.add_argument('--model', default='cnn', type=str, choices=['cnn', 'lstm'])
 
