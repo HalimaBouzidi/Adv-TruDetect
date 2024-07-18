@@ -15,15 +15,8 @@ from numpy import dot
 from numpy.linalg import norm
 
 ######python######################
-import numpy as np
 import sys
-import os, shutil
-import linecache
-import re
-import json
-import subprocess
-import csv
-import pandas
+import os
 import yaml
 import copy
 from functools import reduce
@@ -211,22 +204,6 @@ if __name__ == '__main__':
             w2v_net = Word2VecTrainer_Netlist(base_path=perl_temp_source_dir,
                                               source_config=temp_config)
             
-            #w2v_net.model = gensim.models.Word2Vec.load("/home/hbouzidi/hbouzidi/TrojanDetect/json_temp_file/word2vec_emb/word2vec.model")
-
-            # for idx, sample in enumerate(w2v_net.dataset):
-            #     print('**********', sample)
-                
-            #     word = sample[5]
-            #     for j in range(5):
-            #         a = w2v_net.model.wv[word]
-            #         b = w2v_net.model.wv[w2v_net.model.wv.most_similar(positive=word)[j][0]]
-            #         cos_sim = dot(a, b)/(norm(a)*norm(b))
-            #         norm_dist = np.linalg.norm(a-b)
-            #         #print('**************', w2v_net.model.wv.most_similar(positive=word)[j][0], word, cos_sim, norm_dist)  
-                                      
-            #     if idx == 100:
-            #         break       
-
             w2v_net.train()
 
         # STAGE: NNTraining##########################
@@ -280,7 +257,7 @@ if __name__ == '__main__':
 
                     save_yaml_config(source_config_copy, 'classifier_config_{:d}'.format(idx) + '.yaml')
                     
-                    path = '/home/erastus/Desktop/Postdoc_projects/Adv-TruDetect/json_temp_file/word2vec_emb/CNN_model_pretrained.pth'
+                    path = './json_temp_file/word2vec_emb/CNN_model_pretrained.pth'
                     HTnn_net = Classifier_Netlist(group_id=str(idx),
                                                   base_path=perl_temp_source_dir,
                                                   source_config=source_config_copy,
@@ -292,8 +269,6 @@ if __name__ == '__main__':
                     # import pickle
                     # with open('save/source_config.pkl', 'wb') as handle:
                     #     pickle.dump(source_config_copy, handle, protocol=pickle.HIGHEST_PROTOCOL)  
-
-                    #HTnn_net.evaluate_no_save()
                     
-                    #HTnn_net.train()
+                    HTnn_net.train()
 

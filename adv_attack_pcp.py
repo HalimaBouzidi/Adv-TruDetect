@@ -53,6 +53,8 @@ if __name__ == '__main__':
 
     run_args = parser.parse_args()
 
+    set_random_seeds(random_seed=run_args.seed)
+
     with open('save/source_config.pkl', 'rb') as pickle_file:
         source_config_copy = pickle.load(pickle_file)
 

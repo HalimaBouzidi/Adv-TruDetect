@@ -8,22 +8,14 @@ from word2vec_netlist.trainer_net import Word2VecTrainer_Netlist
 from netlist_scraper import NetlistDataScraper
 
 from dnn_model.LSTM_netlist_softmax_save_results import Classifier_Netlist
-#from dnn_model.CNN_netlist_softma_save_resluts import Classifier_Netlist
 
 from logger import setup_logger
 from numpy import dot
 from numpy.linalg import norm
 
 ######python######################
-import numpy as np
 import sys
-import os, shutil
-import linecache
-import re
-import json
-import subprocess
-import csv
-import pandas
+import os
 import yaml
 import copy
 from functools import reduce
@@ -264,16 +256,18 @@ if __name__ == '__main__':
 
                     save_yaml_config(source_config_copy, 'classifier_config_{:d}'.format(idx) + '.yaml')
                     
-                    #path = '/home/erastus/Desktop/Postdoc_projects/TrojanDetect/json_temp_file/word2vec_emb/KFD[2]_classifier_model_epoch[4].pth'
+                    path = './json_temp_file/word2vec_emb/CNN_model_pretrained.pth'
                     HTnn_net = Classifier_Netlist(group_id=str(idx),
                                                   base_path=perl_temp_source_dir,
                                                   source_config=source_config_copy,
-                                                  num_epoches=20)
-                                                  #pretrained=path)   
+                                                  pretrained=path)   
 
-                    #print(HTnn_net.model)
+                    for i, sample_batched in enumerate(HTnn_net.tra_dataloader):
+                        print(sample_batched[1], sample_batched[2])
 
-                    #HTnn_net.evaluate_no_save()
+                    # import pickle
+                    # with open('save/source_config.pkl', 'wb') as handle:
+                    #     pickle.dump(source_config_copy, handle, protocol=pickle.HIGHEST_PROTOCOL)  
                     
                     HTnn_net.train()
 
