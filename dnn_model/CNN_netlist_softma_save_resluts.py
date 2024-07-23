@@ -182,6 +182,7 @@ class NetlistDataset(IterableDataset):
     def parse_file(self, data):
         with open(data.file_path, mode='r') as file_obj:
             for line in file_obj:
+                #print('*******************', line)
                 line = line.strip()
                 line = line.split(',')
                 ll = int(line[0])
@@ -268,11 +269,11 @@ class Classifier_Netlist:
                 self.tra_data_chunk_list.append(DataReader_Chunk(self.tra_data, worker_id=idx))
         else:
             self.tra_data_chunk_list.append(DataReader_Chunk(self.tra_data))
-        
+                
         self.tra_dataset = NetlistDataset(self.tra_data_chunk_list, batch_size)
         self.tra_dataloader = DataLoader(self.tra_dataset, batch_size=batch_size, shuffle=False,
                                          num_workers=num_tra_workers)
-
+        
         print('===TEST===')
 
         self.val_data = DataReader(base_path=base_path, source_config=source_config, config_type='TEST_PARA',

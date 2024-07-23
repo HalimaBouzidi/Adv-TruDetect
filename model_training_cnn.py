@@ -260,15 +260,15 @@ if __name__ == '__main__':
                     path = './json_temp_file/word2vec_emb/CNN_model_pretrained.pth'
                     HTnn_net = Classifier_Netlist(group_id=str(idx),
                                                   base_path=perl_temp_source_dir,
-                                                  source_config=source_config_copy,
-                                                  pretrained=path)   
+                                                  source_config=source_config_copy)
+                                                  #pretrained=path)   
 
-                    for i, sample_batched in enumerate(HTnn_net.tra_dataloader):
-                        print(sample_batched[1], sample_batched[2])
+                    # for i, sample_batched in enumerate(HTnn_net.tra_dataloader):
+                    #     print(sample_batched[1], sample_batched[2])
 
                     # import pickle
                     # with open('save/source_config.pkl', 'wb') as handle:
                     #     pickle.dump(source_config_copy, handle, protocol=pickle.HIGHEST_PROTOCOL)  
                     
-                    HTnn_net.train()
+                    # HTnn_net.train()
 

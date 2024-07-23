@@ -1,3 +1,5 @@
+import os 
+import csv
 import torch
 import pickle
 import random
@@ -12,6 +14,16 @@ def set_random_seeds(random_seed=0):
     np.random.seed(random_seed)
     random.seed(random_seed)
 
+def append_to_csv(file_path, data):
+    is_empty = os.path.exists(file_path) and os.stat(file_path).st_size == 0
+    with open(file_path, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if is_empty:  # Write header only if the file is empty
+            writer.writerow(["model", "trojan netlist", "n_pcp", "n_labels", "approx_error", "detection_error"])
+        writer.writerow(data)
+    return file_path
+
+
 def genetic_search(HTnn_net, orig_pcp_list, population_size, generations):
     population = [mutate_pcp_list(HTnn_net, deepcopy(orig_pcp_list), n_changes=random.randint(1, 2)) for _ in range(population_size)]  
     
@@ -24,7 +36,7 @@ def genetic_search(HTnn_net, orig_pcp_list, population_size, generations):
             dect_err = detect_score(HTnn_net, get_all_embeddings(HTnn_net, deepcopy(population[i])))
             appx_errs.append(round(appx_err, 2))
             dect_errs.append(round(dect_err, 2))
-            fitness_scores.append(appx_err+dect_err)
+            fitness_scores.append((appx_err+dect_err)/len(population[i]))
                 
         # Update best solutions
         for i, fitness in enumerate(fitness_scores):
@@ -62,11 +74,13 @@ if __name__ == '__main__':
         from dnn_model.CNN_netlist_softma_save_resluts import Classifier_Netlist
         path = './weights/CNN_model_pretrained.pth'
         HTnn_net = Classifier_Netlist(group_id=str(2), base_path='json_temp_file', source_config=source_config_copy, pretrained=path)   
+        file_path = "./results/adv_attack_pcp_results_cnn.csv"
 
     elif run_args.model == 'lstm':
         from dnn_model.LSTM_netlist_softmax_save_results import Classifier_Netlist
         path = './weights/LSTM_model_pretrained.pth'
         HTnn_net = Classifier_Netlist(group_id=str(2), base_path='json_temp_file', source_config=source_config_copy, pretrained=path)   
+        file_path = "./results/adv_attack_pcp_results_lstm.csv"
 
 
     print("*********** Get all the HT circuits names")
@@ -79,7 +93,7 @@ if __name__ == '__main__':
     print("*********** Get all the PCPs and embeddings from each HT circuit")
     for idx, circuit in enumerate(trojan_comps_labels):
         
-        print('******* Adversarial Attack on PCP for HT circuit: ', circuit)
+        print('*********** Adversarial Attack on PCP for HT circuit: ', circuit)
         trojan_comp = trojan_comps_labels[idx]
         pcp_embs = get_samples_by_text_label(HTnn_net.val_dataloader, trojan_comp)
 
@@ -97,8 +111,12 @@ if __name__ == '__main__':
             all_embds.append(p_emb)
             all_cmps.append(full_pcp_cmp)
 
+        orig_score = detect_score(HTnn_net, get_all_embeddings(HTnn_net, deepcopy(all_cmps)))
+
         best_solution = genetic_search(HTnn_net, deepcopy(all_cmps), population_size=128, generations=10)
         
-        print(best_solution[0][0])
-        print('********* Average Approximation Error', best_solution[0][2])
-        print('********* HT Detection Error', best_solution[0][3])
+        #print(best_solution[0][0])
+        print('*********** Average Approximation Error', best_solution[0][2])
+        print('*********** HT Detection Error', best_solution[0][3])
+        
+        append_to_csv(file_path, [run_args.model, circuit, len(all_cmps), orig_score, best_solution[0][2]/len(all_cmps), best_solution[0][3]])

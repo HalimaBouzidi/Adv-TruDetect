@@ -52,27 +52,27 @@ def approximation_error(orig_pcp_list, approx_pcp_list):
                     'xor':  {'and':.75, 'nnd': .25, 'i': 0.5, 'or':.25, 'nor':.75, 'xor':0, 'xnr':1. }, 
                     'xnr':  {'and':.25, 'nnd': .75, 'i': 0.5, 'or':.75, 'nor':.25, 'xor':1., 'xnr':0 }   }
     
-    final_error = 0 
+    final_error = 0
     for i in range(len(orig_pcp_list)):
         orig_pcp, approx_pcp = orig_pcp_list[i], approx_pcp_list[i]
-        error = 0
+        error = []
         for j in range(len(orig_pcp)):
             orig, approx = orig_pcp[j], approx_pcp[j]
             orig_op, _= separate_letters_numbers(orig.split('_')[1])
             approx_op, _= separate_letters_numbers(approx.split('_')[1])
             if orig_op in ['i', 'and', 'nnd', 'or', 'nor', 'xor', 'xnor']:  
-                error += error_maps[orig_op][approx_op]
+                error.append(error_maps[orig_op][approx_op])
         
-        final_error += error/len(orig_pcp)
+        final_error += max(error)
     
-    return final_error/len(orig_pcp_list)
+    return final_error
 
 
 def detect_score(HTnn_net, approx_pcp_list):
     input_data = torch.stack(approx_pcp_list, dim=0).to(HTnn_net.device)
     out = HTnn_net.model(input_data)
     _, pred = torch.max(out, 1) 
-    return pred.sum().item()/len(approx_pcp_list)
+    return pred.sum().item()
 
 def separate_letters_numbers(input_string):
     letters = ''.join(re.findall(r'[a-zA-Z]', input_string))

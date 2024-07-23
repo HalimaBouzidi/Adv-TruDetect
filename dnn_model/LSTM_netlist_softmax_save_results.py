@@ -35,11 +35,15 @@ class LSTM_classify(nn.Module):
         self.log_softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
+        if len(x.size()) == 4 and x.size(1) == 1:
+            x = x.squeeze(1)
+        
+
         out, _ = self.lstm(x)
         out = out[:, -1, :]  # the last one in output sequence（batch， hidden_feature)
         out_score = self.classifier(out)
         out_softmax = self.log_softmax(out_score)  # softmax prepare for multi-class,current 2-class
-        return out_softmax, out_score
+        return out_softmax
 
 
 ###########################################################
@@ -225,7 +229,8 @@ class Classifier_Netlist:
                  num_tra_workers=4,
                  num_val_workers=2,
                  num_epoches=5,
-                 initial_lr=0.001):  # 1e-3
+                 initial_lr=0.001,  # 1e-3
+                 pretrained=None):  
 
         self.use_cuda = torch.cuda.is_available()
         # self.use_cuda=False
@@ -275,6 +280,11 @@ class Classifier_Netlist:
                                    hidden_dim=self.hidden_dim,
                                    num_class=2,
                                    num_layer=2)
+
+        if pretrained:
+            checkpoint = torch.load(pretrained, map_location='cuda')
+            self.model.load_state_dict(checkpoint)
+            print('Model loaded')
 
         if self.use_cuda:
             # if self.device=='cuda':
